@@ -22,10 +22,26 @@ export function AudioPlayer({
 
     if (isPlaying) {
       console.log("Starting audio playback...")
-      audio.play().catch((error) => {
-        console.error("Error playing audio:", error)
-        alert("Greška pri pokretanju stream-a: " + error.message)
-      })
+      
+      // Try to play with user interaction
+      const playPromise = audio.play()
+      
+      if (playPromise !== undefined) {
+        playPromise.then(() => {
+          console.log("Audio started successfully")
+        }).catch((error) => {
+          console.error("Error playing audio:", error)
+          
+          // Handle different error types
+          if (error.name === 'NotAllowedError') {
+            alert("Molimo kliknite na play dugme da pokrenete stream. Mobilni pregledači zahtevaju korisničku interakciju.")
+          } else if (error.name === 'NotSupportedError') {
+            alert("Vaš pregledač ne podržava ovaj audio format.")
+          } else {
+            alert("Greška pri pokretanju stream-a. Proverite internet konekciju.")
+          }
+        })
+      }
     } else {
       console.log("Pausing audio...")
       audio.pause()
@@ -54,6 +70,18 @@ export function AudioPlayer({
 
   return (
     <div className="fixed bottom-6 right-6">
+      {/* Mobile fallback */}
+      <div className="sm:hidden mb-2">
+        <a
+          href={streamUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="block bg-green-500 hover:bg-green-400 text-white px-4 py-2 rounded-full text-sm font-medium transition-colors"
+        >
+          📱 Otvori Stream
+        </a>
+      </div>
+      
       <div className="flex items-center gap-4 bg-black/90 backdrop-blur-md rounded-full px-4 py-3 shadow-2xl border border-gray-800">
         {/* Station Info */}
         <div className="flex items-center gap-3">
@@ -78,6 +106,17 @@ export function AudioPlayer({
             <Play className="w-5 h-5 text-white relative z-10 ml-0.5" />
           )}
         </button>
+
+        {/* Fallback link for mobile */}
+        <a
+          href={streamUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="hidden sm:block text-xs text-gray-400 hover:text-white transition-colors"
+          title="Otvori stream u novom tabu"
+        >
+          📱
+        </a>
 
         {/* Volume Control */}
         <div className="hidden md:flex items-center gap-2">
@@ -122,14 +161,19 @@ export function AudioPlayer({
         src={streamUrl}
         preload="none"
         crossOrigin="anonymous"
+        playsInline
+        controls={false}
         onLoadStart={() => console.log("Audio loading started")}
         onCanPlay={() => console.log("Audio can play")}
         onError={(e) => {
           console.error("Audio error:", e)
-          alert("Greška sa audio stream-om!")
+          alert("Greška sa audio stream-om! Proverite internet konekciju.")
         }}
         onPlay={() => console.log("Audio started playing")}
         onPause={() => console.log("Audio paused")}
+        onLoad={() => console.log("Audio loaded")}
+        onWaiting={() => console.log("Audio waiting for data")}
+        onStalled={() => console.log("Audio stalled")}
       />
     </div>
   )
