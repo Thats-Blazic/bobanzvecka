@@ -1,6 +1,7 @@
 "use client"
 import { useRef, useEffect, useState } from "react"
 import { Play, Pause, Volume2, Radio, ChevronDown } from "lucide-react"
+import { Sheet, SheetTrigger, SheetContent, SheetHeader, SheetTitle, SheetClose } from "@/components/ui/sheet"
 
 interface Station {
   id: string
@@ -27,6 +28,8 @@ export function AudioPlayer({
 }: AudioPlayerProps) {
   const audioRef = useRef<HTMLAudioElement>(null)
   const [showStationSelector, setShowStationSelector] = useState(false)
+  const [volume, setVolume] = useState(0.7)
+  const selectedStationId = stations.find((s) => s.name === currentStation)?.id || (stations[0]?.id || "")
 
   // Control audio based on isPlaying prop
   useEffect(() => {
@@ -70,6 +73,7 @@ export function AudioPlayer({
 
   const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newVolume = parseFloat(e.target.value)
+    setVolume(newVolume)
     if (audioRef.current) {
       audioRef.current.volume = newVolume
     }
@@ -86,6 +90,13 @@ export function AudioPlayer({
       onStationChange(station)
     }
     setShowStationSelector(false)
+  }
+
+  const handleMobileStationChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const station = stations.find((s) => s.id === e.target.value)
+    if (station && onStationChange) {
+      onStationChange(station)
+    }
   }
 
   return (
@@ -109,16 +120,44 @@ export function AudioPlayer({
         </div>
       )}
 
-      {/* Mobile fallback */}
-      <div className="sm:hidden mb-2">
-        <a
-          href={streamUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="block bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-        >
-          📱 Otvori Stream Direktno
-        </a>
+      {/* Mobile station selector (bottom sheet) */}
+      <div className="sm:hidden mb-3">
+        {stations.length > 0 && (
+          <Sheet>
+            <SheetTrigger className="w-full bg-slate-800 text-slate-100 border border-slate-700 rounded-lg px-3 py-2 text-sm text-left">
+              Stanice
+            </SheetTrigger>
+            <SheetContent side="bottom" className="bg-slate-900 border-slate-800">
+              <SheetHeader>
+                <SheetTitle className="text-slate-100">Odaberite stanicu</SheetTitle>
+              </SheetHeader>
+              <div className="p-4 grid grid-cols-1 gap-3">
+                {stations.map((s) => (
+                  <SheetClose key={s.id} asChild>
+                    <button
+                      onClick={() => onStationChange && onStationChange(s)}
+                      className={`w-full px-4 py-3 rounded-lg text-left transition-colors ${
+                        s.name === currentStation
+                          ? "bg-blue-600/20 border border-blue-600 text-white"
+                          : "bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200"
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-md bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center">
+                          <Radio className="w-4 h-4 text-white" />
+                        </div>
+                        <div className="flex-1">
+                          <div className="font-medium">{s.name}</div>
+                          <div className="text-xs text-slate-400 truncate">{s.url}</div>
+                        </div>
+                      </div>
+                    </button>
+                  </SheetClose>
+                ))}
+              </div>
+            </SheetContent>
+          </Sheet>
+        )}
       </div>
       
       <div className="flex items-center gap-4 bg-slate-800/90 backdrop-blur-md rounded-xl px-4 py-3 shadow-lg border border-slate-700">
@@ -156,37 +195,29 @@ export function AudioPlayer({
           )}
         </button>
 
-        {/* Direct Stream Link */}
-        <a
-          href={streamUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="hidden sm:flex items-center gap-1 px-2 py-1 text-xs text-slate-400 hover:text-white hover:bg-slate-700 rounded transition-colors"
-          title="Otvori stream direktno u novom tabu"
-        >
-          📱 Direktno
-        </a>
-
         {/* Volume Control */}
-        <div className="hidden md:flex items-center gap-2">
+        <div className="hidden md:flex items-center gap-3">
           <button
             onClick={toggleMute}
             className="w-8 h-8 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-300 hover:text-white transition-colors duration-200 flex items-center justify-center"
           >
             <Volume2 className="w-4 h-4" />
           </button>
-          <input
-            type="range"
-            min="0"
-            max="1"
-            step="0.1"
-            defaultValue="0.7"
-            onChange={handleVolumeChange}
-            className="w-16 h-1 bg-slate-600 rounded-lg appearance-none cursor-pointer"
-            style={{
-              background: `linear-gradient(to right, #2563eb 0%, #2563eb 70%, #475569 70%, #475569 100%)`
-            }}
-          />
+          <div className="flex items-center gap-2">
+            <input
+              type="range"
+              min="0"
+              max="1"
+              step="0.01"
+              value={volume}
+              onChange={handleVolumeChange}
+              className="w-40 h-2 rounded-full appearance-none cursor-pointer"
+              style={{
+                background: `linear-gradient(to right, #2563eb 0%, #2563eb ${Math.round(volume * 100)}%, #475569 ${Math.round(volume * 100)}%, #475569 100%)`
+              }}
+            />
+            <span className="text-xs text-slate-400 tabular-nums w-8 text-right">{Math.round(volume * 100)}%</span>
+          </div>
         </div>
 
         {/* Visualizer */}

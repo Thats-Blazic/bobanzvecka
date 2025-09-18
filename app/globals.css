@@ -126,6 +126,16 @@
   }
 }
 
+/* Prevent horizontal overflow on mobile */
+html, body {
+  overflow-x: hidden;
+  max-width: 100vw;
+}
+
+main, section {
+  overflow-x: clip;
+}
+
 /* Beautiful animations */
 @keyframes wave {
   0%, 100% {
