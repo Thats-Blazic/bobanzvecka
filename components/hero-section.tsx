@@ -4,59 +4,65 @@ import { Play, Pause, Radio } from "lucide-react"
 interface HeroSectionProps {
   onPlayToggle: () => void
   isPlaying: boolean
+  currentStation: string
 }
 
-export function HeroSection({ onPlayToggle, isPlaying }: HeroSectionProps) {
+export function HeroSection({ onPlayToggle, isPlaying, currentStation }: HeroSectionProps) {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-black to-gray-900 relative overflow-hidden">
-      {/* Background Effects */}
-      <div className="absolute inset-0">
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-green-500/5 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-green-400/5 rounded-full blur-3xl animate-pulse delay-1000" />
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 relative">
+      {/* Subtle Background Pattern */}
+      <div className="absolute inset-0 opacity-10">
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-500 rounded-full blur-3xl" />
+        <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-indigo-500 rounded-full blur-3xl" />
       </div>
 
-      <div className="text-center relative z-10">
+      <div className="text-center relative z-10 max-w-4xl mx-auto px-6">
         {/* Logo */}
-        <div className="mb-12">
-          <div className="inline-flex items-center justify-center w-32 h-32 bg-gradient-to-br from-green-500 to-green-600 rounded-full mb-8 shadow-2xl shadow-green-500/25 hover:shadow-green-500/40 transition-all duration-500 hover:scale-105">
-            <Radio className="w-16 h-16 text-white" />
+        <div className="mb-8">
+          <div className="inline-flex items-center justify-center w-24 h-24 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl mb-6 shadow-lg hover:shadow-xl transition-all duration-300">
+            <Radio className="w-12 h-12 text-white" />
           </div>
         </div>
 
         {/* Title */}
-        <h1 className="text-6xl md:text-8xl font-black mb-8 text-white tracking-tight">
-          <span className="bg-gradient-to-r from-green-400 to-green-600 bg-clip-text text-transparent">
+        <h1 className="text-5xl md:text-7xl font-bold mb-6 text-white tracking-tight">
+          <span className="bg-gradient-to-r from-blue-400 to-indigo-500 bg-clip-text text-transparent">
             Zvečanska
           </span>
           <br />
-          <span className="text-white">Hronika</span>
+          <span className="text-slate-200">Hronika</span>
         </h1>
 
-        <p className="text-xl text-gray-300 mb-16 font-light">
+        <p className="text-xl text-slate-300 mb-12 font-medium">
           Vaša lokalna radio stanica
         </p>
 
+        {/* Current Station Info */}
+        <div className="mb-8 p-4 bg-slate-800/50 backdrop-blur-sm rounded-xl shadow-lg border border-slate-700">
+          <p className="text-sm text-slate-400 mb-1">Trenutno slušate:</p>
+          <p className="text-lg font-semibold text-white">{currentStation}</p>
+        </div>
+
         {/* Play Button */}
-        <div className="mb-8">
+        <div className="mb-6">
           <button
             onClick={() => {
               console.log("Hero play button clicked")
               onPlayToggle()
             }}
-            className="group relative w-20 h-20 bg-green-500 hover:bg-green-400 rounded-full transition-all duration-300 hover:scale-105 active:scale-95 shadow-2xl shadow-green-500/25 hover:shadow-green-400/40 flex items-center justify-center mx-auto"
+            className="group relative w-16 h-16 bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 rounded-xl transition-all duration-300 hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl flex items-center justify-center mx-auto"
           >
-            <div className="absolute inset-0 bg-white/20 rounded-full scale-0 group-hover:scale-110 transition-transform duration-300" />
             {isPlaying ? (
-              <Pause className="w-8 h-8 text-white relative z-10" />
+              <Pause className="w-6 h-6 text-white" />
             ) : (
-              <Play className="w-8 h-8 text-white relative z-10 ml-1" />
+              <Play className="w-6 h-6 text-white ml-1" />
             )}
           </button>
         </div>
         
         <div className="flex items-center justify-center gap-3">
-          <div className={`w-3 h-3 rounded-full ${isPlaying ? 'bg-red-500 animate-pulse' : 'bg-gray-500'}`} />
-          <p className="text-lg text-gray-300 font-medium">
+          <div className={`w-2 h-2 rounded-full ${isPlaying ? 'bg-green-500' : 'bg-slate-500'}`} />
+          <p className="text-base text-slate-300 font-medium">
             {isPlaying ? "UŽIVO" : "Kliknite za live stream"}
           </p>
         </div>

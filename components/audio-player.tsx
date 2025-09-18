@@ -1,19 +1,32 @@
 "use client"
-import { useRef, useEffect } from "react"
-import { Play, Pause, Volume2 } from "lucide-react"
+import { useRef, useEffect, useState } from "react"
+import { Play, Pause, Volume2, Radio, ChevronDown } from "lucide-react"
+
+interface Station {
+  id: string
+  name: string
+  url: string
+}
 
 interface AudioPlayerProps {
   streamUrl?: string
   isPlaying?: boolean
   onPlayToggle?: () => void
+  stations?: Station[]
+  currentStation?: string
+  onStationChange?: (station: Station) => void
 }
 
 export function AudioPlayer({ 
   streamUrl = "https://streaming.tdiradio.com/hit.mp3", 
   isPlaying = false, 
-  onPlayToggle 
+  onPlayToggle,
+  stations = [],
+  currentStation = "Zvečanska Hronika",
+  onStationChange
 }: AudioPlayerProps) {
   const audioRef = useRef<HTMLAudioElement>(null)
+  const [showStationSelector, setShowStationSelector] = useState(false)
 
   // Control audio based on isPlaying prop
   useEffect(() => {
@@ -68,61 +81,97 @@ export function AudioPlayer({
     }
   }
 
+  const handleStationSelect = (station: Station) => {
+    if (onStationChange) {
+      onStationChange(station)
+    }
+    setShowStationSelector(false)
+  }
+
   return (
-    <div className="fixed bottom-6 right-6">
+    <div className="fixed bottom-6 right-6 z-50">
+      {/* Station Selector Dropdown */}
+      {showStationSelector && stations.length > 0 && (
+        <div className="absolute bottom-full right-0 mb-2 bg-slate-800 rounded-xl shadow-lg border border-slate-700 py-2 min-w-64">
+          {stations.map((station) => (
+            <button
+              key={station.id}
+              onClick={() => handleStationSelect(station)}
+              className="w-full px-4 py-3 text-left hover:bg-slate-700 transition-colors flex items-center gap-3"
+            >
+              <Radio className="w-4 h-4 text-slate-400" />
+              <div>
+                <div className="font-medium text-white">{station.name}</div>
+                <div className="text-xs text-slate-400">{station.url}</div>
+              </div>
+            </button>
+          ))}
+        </div>
+      )}
+
       {/* Mobile fallback */}
       <div className="sm:hidden mb-2">
         <a
           href={streamUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="block bg-green-500 hover:bg-green-400 text-white px-4 py-2 rounded-full text-sm font-medium transition-colors"
+          className="block bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
         >
-          📱 Otvori Stream
+          📱 Otvori Stream Direktno
         </a>
       </div>
       
-      <div className="flex items-center gap-4 bg-black/90 backdrop-blur-md rounded-full px-4 py-3 shadow-2xl border border-gray-800">
+      <div className="flex items-center gap-4 bg-slate-800/90 backdrop-blur-md rounded-xl px-4 py-3 shadow-lg border border-slate-700">
         {/* Station Info */}
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-green-600 rounded-lg flex items-center justify-center">
-            <div className="text-white font-bold text-xs">ZH</div>
+          <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-lg flex items-center justify-center">
+            <Radio className="w-5 h-5 text-white" />
           </div>
           <div className="hidden sm:block">
-            <div className="text-sm font-semibold text-white">Zvečanska Hronika</div>
-            <div className="text-xs text-gray-400">{isPlaying ? "UŽIVO" : "Radio Stanica"}</div>
+            <div className="text-sm font-semibold text-white">{currentStation}</div>
+            <div className="text-xs text-slate-400">{isPlaying ? "UŽIVO" : "Radio Stanica"}</div>
           </div>
         </div>
+
+        {/* Station Selector Button */}
+        {stations.length > 0 && (
+          <button
+            onClick={() => setShowStationSelector(!showStationSelector)}
+            className="hidden sm:flex items-center gap-1 px-2 py-1 text-xs text-slate-400 hover:text-white hover:bg-slate-700 rounded transition-colors"
+          >
+            <ChevronDown className="w-3 h-3" />
+            Menjaj
+          </button>
+        )}
 
         {/* Play Button */}
         <button
           onClick={handlePlayToggle}
-          className="group relative w-12 h-12 bg-green-500 hover:bg-green-400 rounded-full transition-all duration-300 hover:scale-105 active:scale-95 shadow-lg shadow-green-500/25 hover:shadow-green-400/40 flex items-center justify-center"
+          className="group relative w-12 h-12 bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 rounded-lg transition-all duration-300 hover:scale-105 active:scale-95 shadow-md hover:shadow-lg flex items-center justify-center"
         >
-          <div className="absolute inset-0 bg-white/20 rounded-full scale-0 group-hover:scale-110 transition-transform duration-300" />
           {isPlaying ? (
-            <Pause className="w-5 h-5 text-white relative z-10" />
+            <Pause className="w-5 h-5 text-white" />
           ) : (
-            <Play className="w-5 h-5 text-white relative z-10 ml-0.5" />
+            <Play className="w-5 h-5 text-white ml-0.5" />
           )}
         </button>
 
-        {/* Fallback link for mobile */}
+        {/* Direct Stream Link */}
         <a
           href={streamUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="hidden sm:block text-xs text-gray-400 hover:text-white transition-colors"
-          title="Otvori stream u novom tabu"
+          className="hidden sm:flex items-center gap-1 px-2 py-1 text-xs text-slate-400 hover:text-white hover:bg-slate-700 rounded transition-colors"
+          title="Otvori stream direktno u novom tabu"
         >
-          📱
+          📱 Direktno
         </a>
 
         {/* Volume Control */}
         <div className="hidden md:flex items-center gap-2">
           <button
             onClick={toggleMute}
-            className="w-8 h-8 rounded-full bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white transition-colors duration-200 flex items-center justify-center"
+            className="w-8 h-8 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-300 hover:text-white transition-colors duration-200 flex items-center justify-center"
           >
             <Volume2 className="w-4 h-4" />
           </button>
@@ -133,9 +182,9 @@ export function AudioPlayer({
             step="0.1"
             defaultValue="0.7"
             onChange={handleVolumeChange}
-            className="w-16 h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer"
+            className="w-16 h-1 bg-slate-600 rounded-lg appearance-none cursor-pointer"
             style={{
-              background: `linear-gradient(to right, #10b981 0%, #10b981 70%, #374151 70%, #374151 100%)`
+              background: `linear-gradient(to right, #2563eb 0%, #2563eb 70%, #475569 70%, #475569 100%)`
             }}
           />
         </div>
@@ -145,7 +194,7 @@ export function AudioPlayer({
           {[...Array(3)].map((_, i) => (
             <div
               key={i}
-              className={`w-1 bg-green-500 rounded-full transition-all duration-300 ${
+              className={`w-1 bg-blue-500 rounded-full transition-all duration-300 ${
                 isPlaying ? "h-6" : "h-2"
               }`}
               style={{
@@ -167,7 +216,22 @@ export function AudioPlayer({
         onCanPlay={() => console.log("Audio can play")}
         onError={(e) => {
           console.error("Audio error:", e)
-          alert("Greška sa audio stream-om! Proverite internet konekciju.")
+          const error = e.currentTarget.error
+          if (error) {
+            switch (error.code) {
+              case error.MEDIA_ERR_SRC_NOT_SUPPORTED:
+                alert("Ovaj audio format nije podržan. Pokušajte sa drugom stanicom ili otvorite stream direktno.")
+                break
+              case error.MEDIA_ERR_NETWORK:
+                alert("Greška sa mrežom. Proverite internet konekciju.")
+                break
+              case error.MEDIA_ERR_DECODE:
+                alert("Greška pri dekodiranju audio stream-a.")
+                break
+              default:
+                alert("Greška sa audio stream-om! Pokušajte sa drugom stanicom.")
+            }
+          }
         }}
         onPlay={() => console.log("Audio started playing")}
         onPause={() => console.log("Audio paused")}
